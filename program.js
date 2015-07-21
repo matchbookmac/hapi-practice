@@ -14,7 +14,7 @@ server.connection({
 //     file: Path.join(__dirname, "index.html")
 //   }
 // });
-
+// Using title helper
 server.route({
   method: "GET",
   path: "/{query?}",
