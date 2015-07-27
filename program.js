@@ -123,20 +123,20 @@ server.connection({
 // });
 
 // Exercise 11 UPLOADS
-// server.route({
-//   path: '/upload',
-//   method: 'POST',
-//   config: {
-//
-//     handler: uploadHandler,
-//
-//     payload: {
-//       output: 'stream',
-//       parse: true
-//       allow: 'multipart/form-data'
-//     }
-//   }
-// });
+server.route({
+  path: '/upload',
+  method: 'POST',
+  config: {
+
+    handler: uploadHandler,
+
+    payload: {
+      output: 'stream',
+      parse: true,
+      allow: 'multipart/form-data'
+    }
+  }
+});
 
 // Exercises 5 & 7
 // server.views({
@@ -163,39 +163,39 @@ server.connection({
 // }
 
 // Exercise 11 UPLOADS
-// function uploadHandler(request, reply) {
-//   var data = request.payload;
-//   var body = '';
-//
-//   if (data.file) {
-//     var name = data.file.hapi.filename;
-//     var path = __dirname + "/uploads/" + name;
-//     var file = Fs.createWriteStream(path);
-//
-//     file.on('error', function (err) {
-//       console.error(err)
-//     });
-//
-//     data.file.pipe(file);
-//
-//     data.file.on('data', function (data) {
-//       body += data;
-//     });
-//
-//     data.file.on('end', function (err) {
-//       var ret = {
-//         description: data.description,
-//         file: {
-//           data: body,
-//           filename: data.file.hapi.filename,
-//           headers: data.file.hapi.headers
-//         }
-//       }
-//       console.log(data)
-//       reply(JSON.stringify(ret));
-//     });
-//   }
-// }
+function uploadHandler(request, reply) {
+  var data = request.payload;
+  var body = '';
+
+  if (data.file) {
+    var name = data.file.hapi.filename;
+    var path = __dirname + "/uploads/" + name;
+    var file = Fs.createWriteStream(path);
+
+    file.on('error', function (err) {
+      console.error(err)
+    });
+
+    data.file.pipe(file);
+
+    data.file.on('data', function (data) {
+      body += data;
+    });
+
+    data.file.on('end', function (err) {
+      var ret = {
+        description: data.description,
+        file: {
+          data: body,
+          filename: data.file.hapi.filename,
+          headers: data.file.hapi.headers
+        }
+      }
+      console.log(data)
+      reply(JSON.stringify(ret));
+    });
+  }
+}
 
 server.start(function () {
   console.log('Server running at:', server.info.uri);
