@@ -11,6 +11,8 @@ server.connection({
   port: Number(process.argv[2] || 8080)
 });
 
+// ### ROUTES ###
+
 // Exercise 1 HELLO_HAPI
 // server.route({
 //   method: "GET",
@@ -122,21 +124,66 @@ server.connection({
 //   }
 // });
 
+// For testing below: curl --form file=@data.csv  --form description=great --url http://localhost:8080/upload -v
 // Exercise 11 UPLOADS
+// server.route({
+//   path: '/upload',
+//   method: 'POST',
+//   config: {
+//
+//     handler: uploadHandler,
+//
+//     payload: {
+//       output: 'stream',
+//       parse: true,
+//       allow: 'multipart/form-data'
+//     }
+//   }
+// });
+
+// Exercise 12 COOKIES
 server.route({
-  path: '/upload',
-  method: 'POST',
+  path: '/set-cookie',
+  method: 'GET',
   config: {
 
-    handler: uploadHandler,
+    handler: function (request, reply) {
+      var session = request.state.session;
 
-    payload: {
-      output: 'stream',
+      if (!session) {
+        session = { key: 'makemehapi' };
+      }
+
+      reply('Success\n').state('session', session);
+    },
+
+    state: {
       parse: true,
-      allow: 'multipart/form-data'
+      failAction: 'log'
     }
   }
 });
+
+server.route({
+  path: '/check-cookie',
+  method: 'GET',
+  config: {
+
+    handler: function (request, reply) {
+      var session = request.state.session;
+      var result;
+
+      if (session) {
+        result = { user: 'hapi' };
+      } else {
+        result = new Hapi.error.unauthorized('Missing authentication');
+      }
+      reply(result);
+    }
+  }
+});
+
+//  ### VIEWS ###
 
 // Exercises 5 & 7
 // server.views({
@@ -146,6 +193,17 @@ server.route({
 //   path: Path.join(__dirname, 'templates'),
 //   helpersPath: Path.join(__dirname, 'helpers')
 // })
+
+// ### SERVER STATE ###
+
+server.state('session', {
+  path: '/',
+  encoding: 'base64json',
+  ttl: 10,
+  domain: 'localhost'
+});
+
+// ### HANDLERS ###
 
 // Exercise 2 ROUTES
 // function helloWorld(request, reply) {
@@ -163,39 +221,41 @@ server.route({
 // }
 
 // Exercise 11 UPLOADS
-function uploadHandler(request, reply) {
-  var data = request.payload;
-  var body = '';
+// function uploadHandler(request, reply) {
+//   var data = request.payload;
+//   var body = '';
+//
+//   if (data.file) {
+//     var name = data.file.hapi.filename;
+//     var path = __dirname + "/uploads/" + name;
+//     var file = Fs.createWriteStream(path);
+//
+//     file.on('error', function (err) {
+//       console.error(err)
+//     });
+//
+//     data.file.pipe(file);
+//
+//     data.file.on('data', function (data) {
+//       body += data;
+//     });
+//
+//     data.file.on('end', function (err) {
+//       var ret = {
+//         description: data.description,
+//         file: {
+//           data: body,
+//           filename: data.file.hapi.filename,
+//           headers: data.file.hapi.headers
+//         }
+//       }
+//       console.log(data)
+//       reply(JSON.stringify(ret));
+//     });
+//   }
+// }
 
-  if (data.file) {
-    var name = data.file.hapi.filename;
-    var path = __dirname + "/uploads/" + name;
-    var file = Fs.createWriteStream(path);
-
-    file.on('error', function (err) {
-      console.error(err)
-    });
-
-    data.file.pipe(file);
-
-    data.file.on('data', function (data) {
-      body += data;
-    });
-
-    data.file.on('end', function (err) {
-      var ret = {
-        description: data.description,
-        file: {
-          data: body,
-          filename: data.file.hapi.filename,
-          headers: data.file.hapi.headers
-        }
-      }
-      console.log(data)
-      reply(JSON.stringify(ret));
-    });
-  }
-}
+// ### START SERVER ###
 
 server.start(function () {
   console.log('Server running at:', server.info.uri);
